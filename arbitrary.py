@@ -7,6 +7,10 @@ locale.setlocale(locale.LC_ALL, '')
 #this will allow the app to run automatically
 import threading
 import subprocess
+#provide timestamps for output
+import datetime
+
+time = datetime.datetime.now()
 
 #opening and assigning a bitcoincharts URL to a variable
 bc_api = urllib.request.urlopen("http://api.bitcoincharts.com/v1/markets.json")
@@ -123,6 +127,8 @@ bc_pl = sell_ct - amount
 """
 
 def arbitrage():
+  print(time, "\n")
+
   print("Virtex -> Quadriga CX", "\n",
       "Profit / Loss:", vq_pl, "\n")
 
@@ -141,8 +147,10 @@ def arbitrage():
   print("Vault of Satoshi -> Quadriga CX", "\n",
       "Profit / Loss:", vsq_pl, "\n")
 
+  print("")
+
   #restart function in x seconds
-  threading.Timer(180, arbitrage).start()
+  threading.Timer(300, arbitrage).start()
 
 
 """
