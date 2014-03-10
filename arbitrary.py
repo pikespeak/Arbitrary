@@ -42,11 +42,6 @@ def arbitrage():
   encoding_vs = vs_api.headers.get_content_charset('utf-8')
   vs = json.loads(vs_api.read().decode(encoding_vs))
 
-  """
-  encoding_ct = ct_api.headers.get_content_charset('utf-8')
-  ct = json.loads(ct_api.read().decode(encoding_ct))
-  """
-
   #finding an exchange in the bitcoincharts API: create a list where 0 = bid, 1 = ask
   def exchange(symbol):
     for item in bc:
@@ -60,10 +55,15 @@ def arbitrage():
   virtex_ask = exchange("virtexCAD")[1]
   virtex_cmsn = 0.015 #commission
 
-  #Bitstamp data market
+  #Bitstamp market data
   bs_bid = exchange("bitstampUSD")[0]
   bs_ask = exchange("bitstampUSD")[1]
-  bs_cmsn = 0.002 #commission
+  bs_cmsn = 0.005 #commission
+
+  #BTC-e market data
+  btce_bid = exchange("btceUSD")[0]
+  btce_ask = exchange("btceUSD")[1]
+  btce_cmsn = 0.002 #commission
 
   #Quadriga CX market data
   qcx_bid = float(qcx["btc_cad"]["buy"])
@@ -75,14 +75,7 @@ def arbitrage():
   vs_ask = float(vs["data"]["asks"][0]["price"]["value"])
   vs_cmsn = 0.01 #commission
 
-
-  """
-  #Cointrader market data
-  ct_bid = float(ct["bids"][len(ct["bids"])-1][0])
-  ct_ask = float(ct["asks"][len(ct["asks"])-1][0])
-  ct_cmsn = 0.005 #commission
-  """
-
+  
   #profit / loss calculator. formula: buy: (amount - commission) / ask. sell: (amount - commission) * bid
   #Virtex -> Quadriga CX
   buy_virtex = (amount - amount * virtex_cmsn) / virtex_ask
@@ -114,24 +107,21 @@ def arbitrage():
   sell_qcx = (buy_vs - buy_vs * qcx_cmsn) * qcx_bid
   vsq_pl = sell_qcx - amount
 
+  #BTC-e -> Bitstamp
+  buy_btce = (amount - amount * btce_cmsn) / btce_ask
+  sell_bs = (buy_btce - buy_btce * bs_cmsn) * bs_bid
+  bbs_pl = sell_bs - amount
 
-  """
-  #Cointrader (USD) -> Bitstamp (USD)
-  buy_ct = (amount - amount * ct_cmsn) / ct_bid
-  sell_bs = (buy_ct - buy_ct * bs_cmsn) * bs_ask
-  cb_pl = sell_bs - amount
-
-  #Bitstamp (USD) -> Cointrader (USD)
-  buy_bs = (amount - amount * bs_cmsn) / bs_bid
-  sell_ct = (buy_bs - buy_bs * ct_cmsn) * ct_ask
-  bc_pl = sell_ct - amount
-  """
+  #BTC-e -> Bitstamp
+  buy_bs = (amount - amount * bs_cmsn) / bs_ask
+  sell_btce = (buy_bs - buy_bs * btce_cmsn) * btce_bid
+  bsb_pl = sell_btce - amount
 
   #show timestamps
   time = datetime.datetime.now()
   
   #print results
-  print(time, "\n")
+  print("\n", "* * * * * * * * * * * * * *", "\n", time, "\n")
 
   print("Virtex -> Quadriga CX", "\n",
       "Profit / Loss:", vq_pl, "\n")
@@ -151,19 +141,13 @@ def arbitrage():
   print("Vault of Satoshi -> Quadriga CX", "\n",
       "Profit / Loss:", vsq_pl, "\n")
 
-  print("")
+  print("BTC-e -> Bitstamp", "\n",
+      "Profit / Loss:", bbs_pl, "\n")
 
-  #restart function in x seconds
+  print("Bitstamp -> BTC-e", "\n",
+      "Profit / Loss:", bsb_pl, "\n")
+
   threading.Timer(300, arbitrage).start()
-
-
-"""
-  print("Cointrader (USD) -> Bitstamp (USD)", "\n",
-      "Profit / Loss:", cb_pl, "\n")
-  
-  print("Bitstamp (USD) -> Cointrader (USD)", "\n",
-      "Profit / Loss:", bc_pl, "\n")
-"""
 
 
 arbitrage()
